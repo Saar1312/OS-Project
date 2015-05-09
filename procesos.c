@@ -1,3 +1,15 @@
+///////////////////////////////////////////////////////////////////////////////////////////
+//    Universidad Simón Bolívar                                                          //
+//    Dpto. de Computación y Tecnología de la Información                                //
+//    CI3825 - Sistemas de Operación                                                     //
+//    Abril - Julio 2015                                                                 //
+//                                                                                       //
+//    Integrantes:                                                                       //
+//        Andrea Centeno, 10-10138                                                       //
+//        Samuel Arleo R, 10-10969                                                       //
+///////////////////////////////////////////////////////////////////////////////////////////
+
+
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -42,8 +54,7 @@ int main(int argc,char *argv[]){
 	//float vs long
 	int i,status;
 	pid_t childpid;
-
-	for(i=0; i <= num_procesos ;i++){
+	for(i=0; i < num_procesos ;i++){
 		//ver man de fork()
 		
 
@@ -57,12 +68,13 @@ int main(int argc,char *argv[]){
 		else if(childpid == 0){
 			
 			FILE *fp = fopen(argv[1],"r");
-			printf("i: %d\t lineas_proceso: %d\n",i,lineas_proceso);
-			int contador = 1;
+			printf("i: %d\t lineas_proceso: %d\n\n\n",i,lineas_proceso);
+			int contador = 0;
+
 			//printf("\n\nLineas por proceso: %d\ti: %d\tcontador: %d\n\n",lineas_proceso,i,contador);
 			while ((caracter = fgetc(fp)) != EOF){
-				printf("%c",caracter);					
-				/*if (i*lineas_proceso <= contador <= i*lineas_proceso+5){
+								
+				if ((i*lineas_proceso <= contador) && (contador < (i+1)*lineas_proceso)){
 
 					printf("%c",caracter);
 
@@ -71,7 +83,7 @@ int main(int argc,char *argv[]){
 
 					contador++;
 
-				}	*/
+				}
 
 			}
 			fclose(fp);
@@ -91,6 +103,7 @@ int main(int argc,char *argv[]){
 		wait();
 	}
 	return 1;
+	
 }
 
 
