@@ -15,20 +15,45 @@
 #include <sys/types.h>
 #include <stdlib.h>
 
+typedef struct persona{
+	char *nombre;
+	Persona *amigos;
+} Persona;
+
+typedef struct parAmigos{
+	char *amigo1;
+	char *amigo2;
+	Persona *amigos;
+} Par;
+
 // Los procesos no comparten datos por lo que hay que leer el archivo con cada fork y llegar a la linea que le corresponde
-// buscar como es el peo con *argv[] y por que se le pasa argv[1] a fopen en vez de *argv[1]
-int main(int argc,char *argv[]){
-	printf("%d\t%s\t%s\n\n",argc,argv[1],argv[2]);
-	FILE *f = fopen(argv[1],"r");
+// buscar como es el peo con *argv[] y por que se le pasa argv[2] a fopen en vez de *argv[2]
+
+int numeroDeLineas(char arch[]){
+
+	FILE *f = fopen(arch,"r");
 	int lineas = 0;
-	int caracter = fgetc(f);
+	char caracter = fgetc(f);
 		
 	while ((caracter=fgetc(f)) != EOF){
 		if (caracter == '\n'){
 			lineas++;
 		}
 	}
-	int num_procesos = atoi(argv[2]);
+	fclose(f);
+	return lineas;
+}
+
+int main(int argc,char *argv[]){
+
+	printf("%d\t%s\t%s\n\n",argc,argv[2],argv[1]);
+
+	int lineas = numeroDeLineas(argv[2]);
+
+	FILE *f = fopen(argv[2],"r");
+	char caracter = fgetc(f);
+
+	int num_procesos = atoi(argv[1]);
 	int lineas_proceso = lineas/num_procesos;
 	if (num_procesos >= 1){ //mas lineas que procesos
 		if (lineas % num_procesos != 0){
@@ -66,7 +91,6 @@ int main(int argc,char *argv[]){
 	}
 	return 1;	
 }
-
 
 void Map(){
 
