@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-
+//Lista enlazada que almacena una persona y a sus amistades
 typedef struct Persona{
 	char *nombre;
 	struct Persona *amigos;
@@ -28,9 +28,7 @@ typedef struct Par{
 	Persona *amigos;
 } Par;
 
-// Los procesos no comparten datos por lo que hay que leer el archivo con cada fork y llegar a la linea que le corresponde
-// buscar como es el peo con *argv[] y por que se le pasa argv[2] a fopen en vez de *argv[2]
-
+///////////////////////////// Calcula el numero de lineas del archivo /////////////////////////////
 int numeroDeLineas(FILE *f, char caracter){
 
 	int lineas = 0;
@@ -43,7 +41,8 @@ int numeroDeLineas(FILE *f, char caracter){
 	return lineas;
 }
 
-void leerLinea(FILE *archivo,Persona *p){
+////////////////////////////// Lee una linea y devuelve una Persona //////////////////////////////
+void leerLineaPersona(FILE *archivo,Persona *p){
 
 	char *str = malloc(sizeof(char)*15);
     fscanf(archivo, "%s" ,str);
@@ -72,6 +71,7 @@ void leerLinea(FILE *archivo,Persona *p){
     }
 }
 
+////////////////////////////////// Imprimer estructura persona //////////////////////////////////
 void imprimirPersona(Persona *p){
 	printf("%s ->",p->nombre);
 	Persona *aux = p->amigos;
@@ -82,7 +82,7 @@ void imprimirPersona(Persona *p){
 	printf("\n");
 }
 
-
+///////////////////////////////////////////// MAIN /////////////////////////////////////////////
 int main(int argc,char *argv[]){
 
 	printf("\n");
@@ -96,7 +96,7 @@ int main(int argc,char *argv[]){
 
 	//lee una linea y crea la estructura persona
     Persona *p = malloc(sizeof(Persona));
-	leerLinea(f,p);
+	leerLineaPersona(f,p);
 
 	imprimirPersona(p); //PRUEBA
 
