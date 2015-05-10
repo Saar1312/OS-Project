@@ -14,13 +14,15 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <stdlib.h>
+#include <string.h>
 
-typedef struct persona{
+
+typedef struct Persona{
 	char *nombre;
-	Persona *amigos;
+	struct Persona *amigos;
 } Persona;
 
-typedef struct parAmigos{
+typedef struct Par{
 	char *amigo1;
 	char *amigo2;
 	Persona *amigos;
@@ -29,32 +31,80 @@ typedef struct parAmigos{
 // Los procesos no comparten datos por lo que hay que leer el archivo con cada fork y llegar a la linea que le corresponde
 // buscar como es el peo con *argv[] y por que se le pasa argv[2] a fopen en vez de *argv[2]
 
-int numeroDeLineas(char arch[]){
+int numeroDeLineas(FILE *f, char caracter){
 
-	FILE *f = fopen(arch,"r");
 	int lineas = 0;
-	char caracter = fgetc(f);
 		
 	while ((caracter=fgetc(f)) != EOF){
 		if (caracter == '\n'){
 			lineas++;
 		}
 	}
-	fclose(f);
 	return lineas;
 }
 
+Persona *leerLinea(FILE *archivo,Persona *p){
+
+	char *str = malloc(sizeof(char)*15);
+    fscanf(archivo, "%s" ,str);
+    p->nombre = str; //le asigna el nombre a la persona
+
+    char caracter = 1;
+    Persona *aux = p;
+
+    //lee flecha
+    char flecha[3];
+    fscanf(archivo, "%s" ,flecha);
+    int j=0;
+
+    while (caracter != '\n'){
+
+       	char *strn = malloc(sizeof(char)*15);
+	    fscanf(archivo, "%s" ,strn);
+
+       	Persona *person = malloc(sizeof(Persona));
+		person->nombre = strn;
+		aux->amigos = person;
+		aux = person;
+		aux->amigos= NULL;
+		caracter = fgetc(archivo);
+		
+    }
+    return p;
+}
+
+void imprimirPersona(Persona *p){
+	printf("%s ->",p->nombre);
+	Persona *aux = p->amigos;
+	while(aux!=NULL){
+		printf(" %s",aux->nombre);
+		aux = aux->amigos;
+	}
+	printf("\n");
+}
+
+
 int main(int argc,char *argv[]){
 
-	printf("%d\t%s\t%s\n\n",argc,argv[2],argv[1]);
-
-	int lineas = numeroDeLineas(argv[2]);
+	printf("\n");
 
 	FILE *f = fopen(argv[2],"r");
 	char caracter = fgetc(f);
 
+	int lineas = numeroDeLineas(f, caracter);
+
+	rewind(f);	
+
+	//lee una linea y crea la estructura persona
+    Persona *p = malloc(sizeof(Persona));
+	leerLinea(f,p);
+
+	imprimirPersona(p); //PRUEBA
+
+	/*
 	int num_procesos = atoi(argv[1]);
 	int lineas_proceso = lineas/num_procesos;
+
 	if (num_procesos >= 1){ //mas lineas que procesos
 		if (lineas % num_procesos != 0){
 			lineas_proceso++;
@@ -89,6 +139,7 @@ int main(int argc,char *argv[]){
 	}for (i=0; i<=num_procesos;i++){
 		wait(&status);
 	}
+	*/
 	return 1;	
 }
 
