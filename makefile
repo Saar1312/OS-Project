@@ -1,6 +1,6 @@
 all: procesos.c
 
-	gcc -o procesos procesos.c
+	gcc header.h persona.c procesos.c -o procesos
 
 
 clear:

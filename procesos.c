@@ -9,24 +9,7 @@
 //        Samuel Arleo R, 10-10969                                                       //
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <stdlib.h>
-#include <string.h>
-
-//Lista enlazada que almacena una persona y a sus amistades
-typedef struct Persona{
-	char *nombre;
-	struct Persona *amigos;
-} Persona;
-
-typedef struct Par{
-	char *amigo1;
-	char *amigo2;
-	Persona *amigos;
-} Par;
+#include "header.h"
 
 ///////////////////////////// Calcula el numero de lineas del archivo /////////////////////////////
 int numeroDeLineas(FILE *f, char caracter){
@@ -39,59 +22,6 @@ int numeroDeLineas(FILE *f, char caracter){
 		}
 	}
 	return lineas;
-}
-
-////////////////////////////// Lee una linea y devuelve una Persona //////////////////////////////
-void leerLineaPersona(FILE *archivo,Persona *p){
-
-	char *str = malloc(sizeof(char)*15);
-    fscanf(archivo, "%s" ,str);
-    p->nombre = str; //le asigna el nombre a la persona
-
-    char caracter = 1;
-    Persona *aux = p;
-
-    //lee flecha
-    char flecha[3];
-    fscanf(archivo, "%s" ,flecha);
-    int j=0;
-
-    while (caracter != '\n'){
-
-       	char *strn = malloc(sizeof(char)*15);
-	    fscanf(archivo, "%s" ,strn);
-
-       	Persona *person = malloc(sizeof(Persona));
-		person->nombre = strn;
-		aux->amigos = person;
-		aux = person;
-		aux->amigos= NULL;
-		caracter = fgetc(archivo);
-    }
-}
-
-////////////////////////////////// Imprimer estructura persona //////////////////////////////////
-void imprimirPersona(Persona *p){
-	printf("%s ->",p->nombre);
-	Persona *aux = p->amigos;
-	while(aux!=NULL){
-		printf(" %s",aux->nombre);
-		aux = aux->amigos;
-	}
-	printf("\n");
-}
-
-//////////////////////////// Liberar espacio de estructura Persona ////////////////////////////
-void liberarPersona(Persona *p){
-	Persona *aux = p;
-	Persona *sig;
-	while(aux!=NULL){
-		sig = aux->amigos;
-		free(aux->nombre);
-		free(aux);
-		aux = sig;
-	}
-	free(p);
 }
 
 ///////////////////////////////////////////// MAIN /////////////////////////////////////////////
@@ -113,9 +43,8 @@ int main(int argc,char *argv[]){
 	imprimirPersona(p); //PRUEBA
 	liberarPersona(p);
 
-	/*
-	int num_procesos = atoi(argv[1]);
-	int lineas_proceso = lineas/num_procesos;
+	int num_procesos = atoi(argv[1]); //numero de procesos
+	int lineas_proceso = lineas/num_procesos; //lineas del archivo que le corresponden a cada proceso
 
 	if (num_procesos >= 1){ //mas lineas que procesos
 		if (lineas % num_procesos != 0){
@@ -125,6 +54,8 @@ int main(int argc,char *argv[]){
 	else{ // mas procesos que lineas
 		lineas_proceso = 1;
 	}
+	/*
+	
 	int i,status;
 	pid_t childpid;
 	for(i=0; i < num_procesos ;i++){
