@@ -43,7 +43,7 @@ int numeroDeLineas(FILE *f, char caracter){
 	return lineas;
 }
 
-Persona *leerLinea(FILE *archivo,Persona *p){
+void leerLinea(FILE *archivo,Persona *p){
 
 	char *str = malloc(sizeof(char)*15);
     fscanf(archivo, "%s" ,str);
@@ -70,7 +70,6 @@ Persona *leerLinea(FILE *archivo,Persona *p){
 		caracter = fgetc(archivo);
 		
     }
-    return p;
 }
 
 void imprimirPersona(Persona *p){
