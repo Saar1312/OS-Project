@@ -67,7 +67,6 @@ void leerLineaPersona(FILE *archivo,Persona *p){
 		aux = person;
 		aux->amigos= NULL;
 		caracter = fgetc(archivo);
-		
     }
 }
 
@@ -80,6 +79,19 @@ void imprimirPersona(Persona *p){
 		aux = aux->amigos;
 	}
 	printf("\n");
+}
+
+//////////////////////////// Liberar espacio de estructura Persona ////////////////////////////
+void liberarPersona(Persona *p){
+	Persona *aux = p;
+	Persona *sig;
+	while(aux!=NULL){
+		sig = aux->amigos;
+		free(aux->nombre);
+		free(aux);
+		aux = sig;
+	}
+	free(p);
 }
 
 ///////////////////////////////////////////// MAIN /////////////////////////////////////////////
@@ -95,10 +107,11 @@ int main(int argc,char *argv[]){
 	rewind(f);	
 
 	//lee una linea y crea la estructura persona
-    Persona *p = malloc(sizeof(Persona));
+	Persona *p = malloc(sizeof(Persona));
 	leerLineaPersona(f,p);
 
 	imprimirPersona(p); //PRUEBA
+	liberarPersona(p);
 
 	/*
 	int num_procesos = atoi(argv[1]);
