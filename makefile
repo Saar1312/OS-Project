@@ -1,6 +1,6 @@
 all: procesos.c
 
-	gcc header.h persona.c procesos.c -o procesos
+	gcc -g header.h persona.c map.c reduce.c pares.c procesos.c -o friendfindP
 
 
 clear:

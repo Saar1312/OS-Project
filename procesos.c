@@ -1,4 +1,4 @@
-///////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////
 //    Universidad Simón Bolívar                                                          //
 //    Dpto. de Computación y Tecnología de la Información                                //
 //    CI3825 - Sistemas de Operación                                                     //
@@ -9,249 +9,204 @@
 //        Samuel Arleo R, 10-10969                                                       //
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+#include "header.h"
 
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <stdlib.h>
-#include <string.h>
-
-
-typedef struct Persona{
-	char *nombre;
-	struct Persona *amigos;
-} Persona;
-
-typedef struct Par{
-	char *amigo1;
-	char *amigo2;
-	struct Persona *amigos;
-} Par;
-
-
-
-void Map(int fileName, Persona *p, FILE *f,char *str1,char *str2,Persona *amigo);
-// Los procesos no comparten datos por lo que hay que leer el archivo con cada fork y llegar a la linea que le corresponde
-// buscar como es el peo con *argv[] y por que se le pasa argv[2] a fopen en vez de *argv[2]
-
-int numeroDeLineas(FILE *f, char caracter){
-
+///////////////////////////// Calcula el numero de lineas del archivo /////////////////////////////
+int numeroDeLineas(char arch[]){
+	FILE *f = fopen(arch,"r");
+	
 	int lineas = 0;
-		
-	while ((caracter=fgetc(f)) != EOF){
-		if (caracter == '\n'){
+	char caracter = 1;
+	while (caracter != EOF){
+		caracter = fgetc(f);
+		if ((caracter == '\n') || (caracter == EOF)){
 			lineas++;
+		}
+	}
+	return lineas;
+	fclose(f);
+}
+
+
+///////////// Calcula el numero de tareas que le tocara realizar a cada proceso //////////
+int tareasPorProceso(int lineasArchivo,int numProcesos){
+
+	int lineas;
+	if (lineasArchivo < numProcesos){
+		lineas = 1;
+	}
+	else{
+		if ((lineasArchivo % numProcesos) == 0){
+			lineas = lineasArchivo/numProcesos;
+		}
+		else{
+			lineas = (lineasArchivo/numProcesos) + 1;
 		}
 	}
 	return lineas;
 }
 
-
-void escribirPar(FILE *archivo, char *persona1,char *persona2,Persona *p){//Pasa los dos nombres porque aveces no sera el primer amigo
-
-	Persona *aux = p->amigos;
-	fprintf(archivo,"%s %s",persona1,persona2); 
-	while (aux != NULL){
-		fprintf(archivo," %s",aux->nombre);
-			aux = aux->amigos;
-	}
-	fprintf(archivo, "\n");
-}
-
-
-void eliminarLinea(int nombre,FILE *archivo,int numlinea,char *str1,char *str2,Persona *amigo, char *linea){
-	//VA A HABER PROBLEMAS CON EL char caracter vs int caracter
+void alcanzarLinea(FILE *f,int linea){
+	
 	char caracter;
-	int contador1,contador2,largo = 0;
-	int MAX_buffer = 128;
-	char *buffer = malloc(sizeof(char)*MAX_buffer);
-	while(contador1 != EOF){
-		if (contador1 == MAX_buffer){
-
-			MAX_buffer *=2;
-			contador1 = 0;
-			buffer = realloc(buffer,MAX_buffer);
-		}
-
-		caracter = getc(archivo);
-		if (contador2 != numlinea){
-			buffer[largo] = caracter;
-		}
-		if (caracter == '\n'){
-			contador2++;
-		}
-		largo++;
-		contador1++;
-	}
-	fclose(archivo);
-	char pid = (char)nombre;
-	char *pid2 = &pid;
-	archivo = fopen(pid2,"w");
-	fprintf(archivo, "%s\n%s %s %s %c",buffer,str1,str2,linea,',');
-	Persona *aux = amigo->amigos;
-	while(aux != NULL){
-
-		fprintf(archivo," %s",aux->nombre);
-		aux = aux->amigos;
-
-	}
-	fprintf(archivo," %c",'\0');
-	fclose(archivo);
-}
-
-//Guarda la parte restante de la linea (del segundo amigo en adelante)
-char *guardarLinea(FILE *f){
-	char caracter;
-	int contador,largo = 0;
-	int MAX_buffer = 128;
-	char *linea = malloc(sizeof(char)*MAX_buffer);
-	while((caracter != '\n') && (contador != EOF)){
-		if (contador == MAX_buffer){
-
-			MAX_buffer *=2;
-			contador = 0;
-			linea = realloc(linea,MAX_buffer);
-		}
-		caracter = getc(f);
-		largo++;
-		contador++;
-
-	}
-	return linea;
-}
-
-//retorna booleano true si lo encontro 
-int buscarPar(int fileName, FILE *archivo,char *persona1,char *persona2,Persona *amigo){
-
-	int encontrado = 0;
-	char *linea;
 	int contador = 0;
-	char caracter;
-	while(caracter != EOF){
-		char *str1 = malloc(sizeof(char)*30);
-		fscanf(archivo,"%s",str1);
-		if(str1 == persona2){
-			char *str2 = malloc(sizeof(char)*30);
-			fscanf(archivo,"%s",str2);
-			if (str2 == persona1){
-				encontrado = 1;
-				linea = guardarLinea(archivo);
-				eliminarLinea(fileName,archivo,contador,str1,str2,amigo,linea);
-				caracter = EOF;
-			}
-			else{
-				while(caracter != '\n'){
-
-					fscanf(archivo,"%s",str1);
-					caracter = fgetc(archivo);
-				}
-				contador++;
-			}	
-		}
-		else{
-			while(caracter != '\n'){
-				fscanf(archivo,"%s",str1);
-				caracter = fgetc(archivo);
-			}
+	while (contador < linea){
+		caracter = fgetc(f);
+		if ((caracter == '\n') || (caracter == EOF)){
 			contador++;
 		}
 	}
-	return encontrado;
 }
 
-struct Persona *leerLinea(FILE *archivo){
 
-	char *str = malloc(sizeof(char)*30);
-    fscanf(archivo, "%s" ,str);
-    struct Persona *p = malloc(sizeof(Persona));
-    p->nombre = str; //le asigna el nombre a la persona
-    printf("%s -> ",p->nombre); //PRUEBA
-
-    char caracter = 1;
-    struct Persona *aux = p;
-
-    //lee flecha
-    char flecha[3];
-    fscanf(archivo, "%s" ,flecha);
-
-    while (caracter != '\n'){
-
-       	char *strn = malloc(sizeof(char)*30);
-	    fscanf(archivo, "%s" ,strn);
-
-       	struct Persona *person = malloc(sizeof(Persona));
-		person->nombre = strn;
-		printf("%s, ",person->nombre);
-		aux->amigos = person;
-		aux = person;
-		caracter = fgetc(archivo);
-		if ((caracter == '\n')||(caracter == '\0')){
-			aux->amigos = NULL;
-		}
-    }
-    return p;
+/////////////////////////// Crea un arreglo con n cantidad de personas ///////////////////////////
+Persona *crearArregloPersonas(FILE *f, int n){ //MAX: Maximo numero de lineas que habra que leer. Sirve cuando el numero de
+	Persona *lista = calloc(n, sizeof(Persona));		//lineas no es multiplo del numero de procesos, por lo que el ultimo proceso
+	Persona *l = lista;									//va a querer leer una linea que no contiene el archivo
+	int i;
+	for(i=0;i<n;i++){
+		leerLineaPersona(f,&lista[i]);
+	}
+	return l;
 }
 
-int main(int argc,char *argv[]){
+//////////////// DISTUBUYE ENTRE LOS PROCESOS LAS LINEAS QUE LE CORRESPONDE MAPEAR ////////////////
+void distribuirMap(char *archivo,int lineasArchivo,int numProcesos,int lineasProceso){
 
-	FILE *f = fopen(argv[2],"r");
-	char caracter = fgetc(f);
-	int lineas = numeroDeLineas(f, caracter);
-	rewind(f);	
-	int num_procesos = atoi(argv[1]);
-	int lineas_proceso = lineas/num_procesos;
-
-	if (num_procesos >= 1){ //mas lineas que procesos
-		if (lineas % num_procesos != 0){
-			lineas_proceso++;
-		}
-	}
-	else{ // mas procesos que lineas
-		lineas_proceso = 1;
-	}
-	int i,status;
-	pid_t childpid;
-	for(i=0; i < num_procesos ;i++){
+	int i;
+	pid_t childpid = 0;
+	for (i = 0; i<numProcesos ;i++){
 		if ((childpid = fork()) < 0){
-			perror("fork:");
-			exit(1);
+			perror("No ha sido posible crear el hijo.");
+			exit(1);	
 		}
-		else if(childpid == 0){
-			rewind(f);			
-			//printf("i: %d\t lineas_proceso: %d\n\n\n",i,lineas_proceso);
-			int contador = 0;
-			while ((caracter = fgetc(f)) != EOF){	
-				if ((i*lineas_proceso <= contador) && (contador < (i+1)*lineas_proceso)){
-					Persona *p = leerLinea(f);
-					if (p->amigos->nombre != "-None-"){
-						int pid_proceso = getpid();
-						Map(pid_proceso,p,f,p->nombre,p->amigos->nombre,p->amigos);
+		if (childpid == 0){ // Si el numero de procesos es mayor que el numero de lineas, hay que crear procesos demas, que no haran nada)){
+			if (i<lineasArchivo){
+				FILE *f = fopen(archivo,"r");
+				char PID[8];
+				sprintf(PID,"%ld",(long)getpid());
+				alcanzarLinea(f,i*lineasProceso);
+				Persona *lista;
+				if((lineasArchivo % numProcesos != 0) && (i == numProcesos - 1)){ //i == numProcesos para que solo entre con el ultimo
+					int MAX = lineasProceso - (((lineasArchivo/numProcesos)+1)*numProcesos - lineasArchivo); //Si el numero de lineas no es
+																											 //multiplo del nro de procesos
+					if(MAX != 0){		// Puede pasar que sobre un proceso con 0 lineas, ejemplo 20 lineas 11 procesos											
+						FILE *archivo = fopen(PID,"w+"); 
+						lista = crearArregloPersonas(f, MAX);
+						map(PID, lineasProceso, lista);
+						liberarArregloPersonas(lista,lineasProceso);
+						fclose(archivo);				 
+					}
+					else{
+						exit(-2);
 					}
 				}
-				if (caracter == '\n'){
-					contador++;
+				else{
+					FILE *archivo = fopen(PID,"w+"); 
+					lista = crearArregloPersonas(f, lineasProceso);
+					map(PID, lineasProceso, lista);
+					liberarArregloPersonas(lista,lineasProceso);
+					fclose(archivo);
 				}
+				fclose(f);
+				exit(getpid());
 			}
-			exit(0);
+			else{ // Si el numero de procesos es mayor que el de las lineas no se creo que archivo, por lo que hay que decirle
+				  // al padre que no trate de leer un archivo si el wait retorno -2
+				exit(-2);
+			}
 		}
-			// esto le corresponde  a la funcion Map
-	}for (i=0; i<=num_procesos;i++){
-		wait(&status);
 	}
-	return 1;	
 }
 
-void Map(int fileName,Persona *p, FILE *f,char *str1,char *str2,Persona *amigo){
+///////////////// Guarda los PIDs de todos los hijos creados en un arreglo//////////////////
+void recibirPIDS(int numProcesos,pid_t PIDS[]){
+	int i,status;
+	for (i=0; i<numProcesos ;i++){
+		PIDS[i] = wait(&status);
+		printf("HIJO: %d\n",PIDS[i]);
+	} 
+}
 
-	if (!buscarPar(fileName,f,str1,str2,amigo)){
-		fprintf(f,"%s %s",str1,str2);
-		Persona *aux = amigo->amigos;
-		while(aux != NULL){
-			fprintf(f," %s",aux->nombre);
-			aux = aux->amigos;
+///////////////// Guarda los PIDs de todos los hijos creados en un arreglo//////////////////
+void escribirArchivoFinal(int numProcesos,pid_t PIDS[], char arch[]){
+	int i;
+	char caracter;
+	FILE *entrada;
+	FILE *salida = fopen(arch, "a+");
+	for (i=0; i<numProcesos ;i++){
+		if(PIDS[i] != -2){
+            char PID[8];
+            sprintf(PID,"%ld",(long)PIDS[i]);
+			entrada = fopen(PID,"r");
+			caracter = fgetc(entrada);
+			while (caracter != EOF){
+				fprintf(salida, "%c",caracter);
+				caracter = fgetc(entrada);
+			}
+			fclose(entrada);
 		}
-		fprintf(f,"%c",'\0');
+	} 
+	fclose(salida);
+}
 
+///////////////////////////////////////////// MAIN /////////////////////////////////////////////
+int main(int argc,char *argv[]){
+	int numProcesos = atoi(argv[1]);
+	int lineasArchivo = numeroDeLineas(argv[2]); //Lineas del archivo
+	int lineasProceso = tareasPorProceso(lineasArchivo,numProcesos);
+	//se crean los hijos y se hace map
+	distribuirMap(argv[2],lineasArchivo,numProcesos,lineasProceso);
+	//recibe los PIDs de los hijos y losalmacena
+	pid_t *PIDS = malloc(sizeof(pid_t)*numProcesos); 
+	recibirPIDS(numProcesos,PIDS);
+	//se crea una estructura Par que contiene todos los pares generados por todos los hijos
+	Par *pares = malloc(sizeof(Par));
+    char PID[8];
+	formarPares(pares,PIDS,numProcesos);
+	free(pares);
+
+	//reparte los pares entre los procesos
+	int numPares = contarPares(pares);
+	int tareasProceso = tareasPorProceso(numPares,numProcesos);
+	//variables necesarias para el reduce
+	int i,j;
+	int turno = 0;
+	pid_t childpid;
+	// REDUCE //
+	for(i=0; i<numProcesos;i++){
+		if ((childpid = fork()) < 0){
+			printf("No se ha podido crear el hijo\n");
+		}
+		else if(childpid == 0){
+			Par *aux = pares;
+			int sobra = numPares - numProcesos;
+			for (j=0; j<numPares;j++){
+				if (numProcesos >= numPares){
+					if (i == j){
+						char PID[8];
+						sprintf(PID,"%ld",(long)getpid());
+						reduce(aux,PID);
+					}
+				}
+				else{
+					if((i == j) || ((j>numProcesos-1) && (i == (j%numProcesos)))){
+						char PID[8];
+						sprintf(PID,"%ld",(long)getpid());
+						reduce(aux,PID);
+					}
+				}
+				aux = aux->sig;
+			}
+		}
 	}
-
+	//recibe los PIDs de los hijos y losalmacena
+	PIDS = malloc(sizeof(pid_t)*numProcesos); 
+	recibirPIDS(numProcesos,PIDS);
+	//se escribe en el archivo indicado la salida del proceso
+	escribirArchivoFinal(numProcesos,PIDS, argv[3]);
+	//libera memoria
+	free(PIDS);
+	//liberaListaPares(pares);
+	return 0;
 }

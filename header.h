@@ -2,7 +2,7 @@
 //    Universidad Simón Bolívar                                                          //
 //    Dpto. de Computación y Tecnología de la Información                                //
 //    CI3825 - Sistemas de Operación                                                     //
-//    Abril - Julio 2015                                                                 //
+//    Abril - Julio 2015                             	                                 //
 //                                                                                       //
 //    Integrantes:                                                                       //
 //        Andrea Centeno, 10-10138                                                       //
@@ -23,9 +23,20 @@ typedef struct Persona{
 	struct Persona *amigos;
 } Persona;
 
-
+//Lista enlazada que almacena cada par de amigos y sus amigos
 typedef struct Par{
 	char *amigo1;
 	char *amigo2;
-	Persona *amigos;
+	Persona *amigos1;
+	Persona *amigos2;
+	struct Par *sig;
 } Par;
+
+////// FIRMAS //////
+int numeroDeLineas(char arch[]);
+int tareasPorProceso(int lineasArchivo,int numProcesos);
+void alcanzarLinea(FILE *f,int linea);
+Persona *crearArregloPersonas(FILE *f, int n);
+void distribuirMap(char *archivo,int lineasArchivo,int numProcesos,int lineasProceso);
+void recibirPIDS(int numProcesos,pid_t PIDS[]);
+void escribirResultado(FILE *f,pid_t PIDS[],int numPares);
