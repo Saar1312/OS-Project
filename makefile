@@ -1,8 +1,6 @@
-all: procesos.c
-
-	gcc -g header.h persona.c map.c reduce.c pares.c procesos.c -o friendfindP
-
-
-clear:
-
-	rm procesos
+FILES=header.h persona.c map.c reduce.c pares.c procesos.c 
+FLAGS=-g -o
+make: $(FILES)
+	gcc $(FLAGS) friendfindP $(FILES)
+clean:
+	rm -f friendfindP
