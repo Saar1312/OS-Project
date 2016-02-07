@@ -4,3 +4,4 @@ make: $(FILES)
 	gcc $(FLAGS) friendfindP $(FILES)
 clean:
 	rm -f friendfindP
+#holaaaaa
